@@ -1,3 +1,10 @@
+import warnings
+
+warnings.filterwarnings("ignore", message="TypedStorage is deprecated")
+warnings.filterwarnings("ignore", message="You are using the default legacy behaviour")
+warnings.filterwarnings("ignore", message="Some kwargs in processor config are unused")
+warnings.filterwarnings("ignore", message="The image_processor_class argument is deprecated")
+
 import gradio as gr
 import torch
 from transformers import AutoConfig, AutoModelForCausalLM
@@ -24,7 +31,11 @@ if torch.cuda.is_available():
 else:
     vl_gpt = vl_gpt.to(torch.float16)
 
-vl_chat_processor = VLChatProcessor.from_pretrained(model_path)
+vl_chat_processor = VLChatProcessor.from_pretrained(model_path,
+                                                   fast_image_processor_class=True,
+                                                   legacy=True
+)
+
 tokenizer = vl_chat_processor.tokenizer
 cuda_device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -241,5 +252,5 @@ with gr.Blocks() as demo:
         outputs=image_output
     )
 
-demo.launch(share=True)
-# demo.queue(concurrency_count=1, max_size=10).launch(server_name="0.0.0.0", server_port=37906, root_path="/path")
+#demo.launch(share=True)
+demo.queue(max_size=10).launch(server_name="0.0.0.0", server_port=37906)
